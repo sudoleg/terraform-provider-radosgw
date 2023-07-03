@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"net/http"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/spreadshirt/terraform-provider-radosgw/rgwadmin"
+	"github.com/ceph/go-ceph/rgw/admin"
 )
 
 // Ensure RadosgwProvider satisfies various provider interfaces.
@@ -121,8 +122,7 @@ func (p *radosgwProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
-	client := rgwadmin.New(endpoint, accessKeyID, secretAccessKey)
-	err := client.Info(ctx)
+	client, err := admin.New(endpoint, accessKeyID, secretAccessKey, http.DefaultClient)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Unable to create radosgw admin client",
@@ -143,7 +143,7 @@ func (p *radosgwProvider) Resources(ctx context.Context) []func() resource.Resou
 
 func (p *radosgwProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewExampleDataSource,
+		NewBucketsDataSource,
 	}
 }
 
