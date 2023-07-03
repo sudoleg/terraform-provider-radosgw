@@ -147,6 +147,7 @@ func (p *radosgwProvider) Configure(ctx context.Context, req provider.ConfigureR
 func (p *radosgwProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewExampleResource,
+		NewUserResource,
 	}
 }
 
