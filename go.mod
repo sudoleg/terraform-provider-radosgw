@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-scaffolding-framework
+module github.com/spreadshirt/terraform-provider-radosgw
 
 go 1.19
 
