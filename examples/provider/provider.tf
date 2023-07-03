@@ -7,5 +7,10 @@ terraform {
 }
 
 provider "radosgw" {
-  # example configuration here
+  endpoint = "http://127.0.0.1:9000"
+  # set access_key_id and secret_access_key via ACCESS_KEY_ID and SECRET_ACCESS_KEY env variables
+}
+
+data "radosgw_example" "thing" {
+  configurable_attribute = "xyz"
 }

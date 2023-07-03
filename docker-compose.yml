@@ -1,0 +1,20 @@
+version: "3"
+services:
+  ceph:
+    image: quay.io/ceph/demo:latest-pacific
+    environment:
+      - RGW_FRONTEND_TYPE=beast
+      - RGW_FRONTEND_PORT=9000
+      - SREE_PORT=5001
+      - MON_IP=127.0.0.1
+      - CEPH_PUBLIC_NETWORK=0.0.0.0/0
+      - CLUSTER=ceph
+      - CEPH_DEMO_UID=demo
+      - CEPH_DEMO_ACCESS_KEY=RMkni81ukvCYTLCjk62d # Created with `tr -dc A-Za-z0-9 </dev/urandom | head -c 20 ; echo ''`
+      - CEPH_DEMO_SECRET_KEY=k8xeC8Kb62PMSXglkeuS6kLLjOHRp6y5LMntsUAR # Created with `tr -dc A-Za-z0-9 </dev/urandom | head -c 20 ; echo ''`
+      - CEPH_DEMO_BUCKET=terraform-example
+    command: demo
+    hostname: ceph
+    ports:
+      - 5001:5001 # ceph-dashboard
+      - 9000:9000 # radosgw
