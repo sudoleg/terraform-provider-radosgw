@@ -64,13 +64,40 @@ func (r *userResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"display_name": schema.StringAttribute{
 				Required: true,
 			},
+			"keys": schema.ListNestedAttribute{
+				Optional: true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"user": schema.StringAttribute{
+							Optional: true,
+						},
+						"access_key": schema.StringAttribute{
+							Optional:  true,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret_key": schema.StringAttribute{
+							Optional:  true,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
 type userResourceModel struct {
-	UserID      types.String `tfsdk:"user_id"`
-	DisplayName types.String `tfsdk:"display_name"`
+	UserID      types.String    `tfsdk:"user_id"`
+	DisplayName types.String    `tfsdk:"display_name"`
+	Keys        []userKeysModel `tfsdk:"keys"`
+}
+
+type userKeysModel struct {
+	User      types.String `tfsdk:"user"`
+	AccessKey types.String `tfsdk:"access_key"`
+	SecretKey types.String `tfsdk:"secret_key"`
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -128,6 +155,13 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 
 	state.UserID = types.StringValue(user.ID)
 	state.DisplayName = types.StringValue(user.DisplayName)
+
+	state.Keys = make([]userKeysModel, len(user.Keys))
+	for i, key := range user.Keys {
+		state.Keys[i].User = types.StringValue(key.User)
+		state.Keys[i].AccessKey = types.StringValue(key.AccessKey)
+		state.Keys[i].SecretKey = types.StringValue(key.SecretKey)
+	}
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
