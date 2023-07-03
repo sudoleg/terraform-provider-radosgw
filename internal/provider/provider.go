@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 )
@@ -122,6 +123,12 @@ func (p *radosgwProvider) Configure(ctx context.Context, req provider.ConfigureR
 		return
 	}
 
+	ctx = tflog.SetField(ctx, "radosgw_endpoint", endpoint)
+	ctx = tflog.SetField(ctx, "radosgw_access_key_id", accessKeyID)
+	ctx = tflog.SetField(ctx, "radosgw_secret_access_key", secretAccessKey)
+	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "radosgw_secret_access_key")
+	tflog.Debug(ctx, "creating radosgw admin client")
+
 	client, err := admin.New(endpoint, accessKeyID, secretAccessKey, http.DefaultClient)
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -133,6 +140,8 @@ func (p *radosgwProvider) Configure(ctx context.Context, req provider.ConfigureR
 
 	resp.DataSourceData = client
 	resp.ResourceData = client
+
+	tflog.Info(ctx, "configured radosgw admin client", map[string]any{"success": true})
 }
 
 func (p *radosgwProvider) Resources(ctx context.Context) []func() resource.Resource {
