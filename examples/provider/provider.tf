@@ -16,7 +16,7 @@ data "radosgw_buckets" "buckets" {
 
 resource "radosgw_user" "terraformed_user" {
   user_id      = "terraformed"
-  display_name = "User created by terraform for testing"
+  display_name = "User created by terraform for testing (modified)"
 }
 
 resource "radosgw_user" "demo_user" {
