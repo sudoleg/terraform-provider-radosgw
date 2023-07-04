@@ -241,7 +241,6 @@ func (r *keyResource) ImportState(ctx context.Context, req resource.ImportStateR
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 }
 
 // Update updates the resource and sets the updated Terraform state on success.

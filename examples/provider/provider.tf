@@ -16,6 +16,12 @@ resource "radosgw_user" "demo_user" {
   display_name = "Ceph demo user"
 }
 
+resource "radosgw_subuser" "demo_subuser_readonly" {
+  user_id = "demo"
+  subuser = "readonly"
+  access  = "readwrite"
+}
+
 resource "radosgw_key" "demo_default_key" {
   user = "demo"
 }
