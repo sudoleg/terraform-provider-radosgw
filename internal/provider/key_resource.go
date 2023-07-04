@@ -274,23 +274,32 @@ func (r *keyResource) ImportState(ctx context.Context, req resource.ImportStateR
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (r *keyResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan keyResourceModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// TODO: implement Update
-
-	diags = resp.State.Set(ctx, plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// TODO: consider supporting updating keys (access key equal => new secret; if not re-create to rotate both)
+	resp.Diagnostics.AddError(
+		"Updating keys not yet supported (and might not make sense)",
+		"We don't support updating keys yet, because usually both the access key and secret key are rotated, so the can just be recreated",
+	)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (r *keyResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	// TODO: implement Delete
+	var state keyResourceModel
+	diags := req.State.Get(ctx, &state)
+	resp.Diagnostics.Append(diags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	err := r.client.RemoveKey(ctx, admin.UserKeySpec{
+		UID:       state.User.ValueString(),
+		SubUser:   state.Subuser.ValueString(),
+		AccessKey: state.AccessKey.ValueString(),
+	})
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error removing key",
+			fmt.Sprintf("Could not remove key %q: %s", state.AccessKey.ValueString(), err),
+		)
+		return
+	}
 }
