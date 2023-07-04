@@ -184,22 +184,75 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	user := admin.User{
-		ID:          plan.UserID.ValueString(),
-		DisplayName: plan.DisplayName.ValueString(),
-	}
-
-	user, err := r.client.ModifyUser(ctx, user)
+	user, err := r.client.GetUser(ctx, admin.User{ID: plan.UserID.ValueString()})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Error creating user",
-			"Could not create user, unexpected error: "+err.Error(),
+			"Error retrieving user",
+			"Could not retrieve user, unexpected error: "+err.Error(),
+		)
+		return
+	}
+
+	user.ID = plan.UserID.ValueString()
+	user.DisplayName = plan.DisplayName.ValueString()
+
+	seen := make(map[admin.UserKeySpec]bool, len(user.Keys))
+	for _, key := range user.Keys {
+		seen[admin.UserKeySpec{
+			User:      key.User,
+			AccessKey: key.AccessKey,
+			SecretKey: key.SecretKey,
+		}] = true
+	}
+
+	keys := make([]admin.UserKeySpec, len(user.Keys))
+	for _, key := range plan.Keys {
+		userKey := admin.UserKeySpec{
+			User:      key.User.ValueString(),
+			AccessKey: key.AccessKey.ValueString(),
+			SecretKey: key.SecretKey.ValueString(),
+		}
+
+		if seen[userKey] {
+			continue
+		}
+
+		userKey.UID = key.User.ValueString()
+		if key.AccessKey.IsNull() || key.SecretKey.IsNull() {
+			*userKey.GenerateKey = true
+		}
+
+		keys = append(keys, userKey)
+
+		break
+	}
+
+	user = admin.User{
+		ID:          plan.UserID.ValueString(),
+		DisplayName: plan.DisplayName.ValueString(),
+		Keys:        keys,
+	}
+
+	user, err = r.client.ModifyUser(ctx, user)
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error update user",
+			"Could not update user, unexpected error: "+err.Error(),
 		)
 		return
 	}
 
 	plan.UserID = types.StringValue(user.ID)
 	plan.DisplayName = types.StringValue(user.DisplayName)
+
+	plan.Keys = make([]userKeysModel, len(user.Keys))
+	for i, key := range user.Keys {
+		plan.Keys[i] = userKeysModel{
+			User:      types.StringValue(key.User),
+			AccessKey: types.StringValue(key.AccessKey),
+			SecretKey: types.StringValue(key.SecretKey),
+		}
+	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)
