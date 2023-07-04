@@ -15,3 +15,11 @@ resource "radosgw_user" "demo_user" {
   user_id      = "demo"
   display_name = "Ceph demo user"
 }
+
+resource "radosgw_key" "demo_default_key" {
+  user = "demo"
+}
+
+resource "radosgw_key" "demo_second_key" {
+  user = "demo"
+}
