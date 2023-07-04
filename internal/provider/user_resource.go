@@ -64,40 +64,13 @@ func (r *userResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"display_name": schema.StringAttribute{
 				Required: true,
 			},
-			"keys": schema.ListNestedAttribute{
-				Optional: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"user": schema.StringAttribute{
-							Optional: true,
-						},
-						"access_key": schema.StringAttribute{
-							Optional:  true,
-							Computed:  true,
-							Sensitive: true,
-						},
-						"secret_key": schema.StringAttribute{
-							Optional:  true,
-							Computed:  true,
-							Sensitive: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
 
 type userResourceModel struct {
-	UserID      types.String    `tfsdk:"user_id"`
-	DisplayName types.String    `tfsdk:"display_name"`
-	Keys        []userKeysModel `tfsdk:"keys"`
-}
-
-type userKeysModel struct {
-	User      types.String `tfsdk:"user"`
-	AccessKey types.String `tfsdk:"access_key"`
-	SecretKey types.String `tfsdk:"secret_key"`
+	UserID      types.String `tfsdk:"user_id"`
+	DisplayName types.String `tfsdk:"display_name"`
 }
 
 // Create creates the resource and sets the initial Terraform state.
@@ -156,13 +129,6 @@ func (r *userResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 	state.UserID = types.StringValue(user.ID)
 	state.DisplayName = types.StringValue(user.DisplayName)
 
-	state.Keys = make([]userKeysModel, len(user.Keys))
-	for i, key := range user.Keys {
-		state.Keys[i].User = types.StringValue(key.User)
-		state.Keys[i].AccessKey = types.StringValue(key.AccessKey)
-		state.Keys[i].SecretKey = types.StringValue(key.SecretKey)
-	}
-
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -196,41 +162,9 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	user.ID = plan.UserID.ValueString()
 	user.DisplayName = plan.DisplayName.ValueString()
 
-	seen := make(map[admin.UserKeySpec]bool, len(user.Keys))
-	for _, key := range user.Keys {
-		seen[admin.UserKeySpec{
-			User:      key.User,
-			AccessKey: key.AccessKey,
-			SecretKey: key.SecretKey,
-		}] = true
-	}
-
-	keys := make([]admin.UserKeySpec, len(user.Keys))
-	for _, key := range plan.Keys {
-		userKey := admin.UserKeySpec{
-			User:      key.User.ValueString(),
-			AccessKey: key.AccessKey.ValueString(),
-			SecretKey: key.SecretKey.ValueString(),
-		}
-
-		if seen[userKey] {
-			continue
-		}
-
-		userKey.UID = key.User.ValueString()
-		if key.AccessKey.IsNull() || key.SecretKey.IsNull() {
-			*userKey.GenerateKey = true
-		}
-
-		keys = append(keys, userKey)
-
-		break
-	}
-
 	user = admin.User{
 		ID:          plan.UserID.ValueString(),
 		DisplayName: plan.DisplayName.ValueString(),
-		Keys:        keys,
 	}
 
 	user, err = r.client.ModifyUser(ctx, user)
@@ -244,15 +178,6 @@ func (r *userResource) Update(ctx context.Context, req resource.UpdateRequest, r
 
 	plan.UserID = types.StringValue(user.ID)
 	plan.DisplayName = types.StringValue(user.DisplayName)
-
-	plan.Keys = make([]userKeysModel, len(user.Keys))
-	for i, key := range user.Keys {
-		plan.Keys[i] = userKeysModel{
-			User:      types.StringValue(key.User),
-			AccessKey: types.StringValue(key.AccessKey),
-			SecretKey: types.StringValue(key.SecretKey),
-		}
-	}
 
 	diags = resp.State.Set(ctx, plan)
 	resp.Diagnostics.Append(diags...)

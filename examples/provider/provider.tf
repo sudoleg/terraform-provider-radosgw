@@ -27,15 +27,4 @@ data "radosgw_buckets" "buckets" {
 resource "radosgw_user" "demo_user" {
   user_id      = "demo"
   display_name = "Ceph demo user"
-  keys = [
-    {
-      user = "demo",
-    },
-    {
-      user = "demo",
-    },
-    # {
-    #   user = "demo",
-    # }
-  ]
 }
