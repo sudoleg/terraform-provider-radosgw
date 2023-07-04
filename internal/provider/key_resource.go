@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/ceph/go-ceph/rgw/admin"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -59,9 +60,9 @@ func (r *keyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			"user": schema.StringAttribute{
 				Required: true,
 			},
-			// "subuser": schema.StringAttribute{
-			// 	Optional: true,
-			// },
+			"subuser": schema.StringAttribute{
+				Optional: true,
+			},
 			"access_key": schema.StringAttribute{
 				Optional:  true,
 				Computed:  true,
@@ -78,6 +79,7 @@ func (r *keyResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 
 type keyResourceModel struct {
 	User      types.String `tfsdk:"user"`
+	Subuser   types.String `tfsdk:"subuser"`
 	AccessKey types.String `tfsdk:"access_key"`
 	SecretKey types.String `tfsdk:"secret_key"`
 }
@@ -106,6 +108,7 @@ func (r *keyResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	newKey := admin.UserKeySpec{
 		User:      plan.User.ValueString(),
+		SubUser:   plan.Subuser.ValueString(),
 		AccessKey: plan.AccessKey.ValueString(),
 		SecretKey: plan.SecretKey.ValueString(),
 
@@ -131,7 +134,14 @@ func (r *keyResource) Create(ctx context.Context, req resource.CreateRequest, re
 			continue
 		}
 
-		plan.User = types.StringValue(key.User)
+		parts := strings.SplitN(key.User, ":", 2)
+		if len(parts) == 2 {
+			plan.User = types.StringValue(parts[0])
+			plan.Subuser = types.StringValue(parts[1])
+		} else {
+			plan.User = types.StringValue(key.User)
+		}
+
 		plan.AccessKey = types.StringValue(key.AccessKey)
 		plan.SecretKey = types.StringValue(key.SecretKey)
 
@@ -158,15 +168,20 @@ func (r *keyResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error fetching user for key retrieval",
-			"Could not fetch user for key retrieval: "+err.Error(),
+			fmt.Sprintf("Could not fetch user %q for key retrieval: %s", state.User.ValueString(), err.Error()),
 		)
 		return
+	}
+
+	expectedUser := state.User.ValueString()
+	if !state.Subuser.IsNull() {
+		expectedUser = state.User.ValueString() + ":" + state.Subuser.ValueString()
 	}
 
 	var found bool
 	var matchingKey admin.UserKeySpec
 	for _, key := range user.Keys {
-		if key.AccessKey == state.AccessKey.ValueString() && key.SecretKey == state.SecretKey.ValueString() {
+		if key.User == expectedUser && key.AccessKey == state.AccessKey.ValueString() && key.SecretKey == state.SecretKey.ValueString() {
 			found = true
 			matchingKey = key
 			break
@@ -181,7 +196,14 @@ func (r *keyResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	state.User = types.StringValue(matchingKey.User)
+	parts := strings.SplitN(matchingKey.User, ":", 2)
+	if len(parts) == 2 {
+		state.User = types.StringValue(parts[0])
+		state.Subuser = types.StringValue(parts[1])
+	} else {
+		state.User = types.StringValue(matchingKey.User)
+	}
+
 	state.AccessKey = types.StringValue(matchingKey.AccessKey)
 	state.SecretKey = types.StringValue(matchingKey.SecretKey)
 
@@ -232,7 +254,14 @@ func (r *keyResource) ImportState(ctx context.Context, req resource.ImportStateR
 	}
 
 	var state keyResourceModel
-	state.User = types.StringValue(matchingKey.User)
+	parts := strings.SplitN(matchingKey.User, ":", 2)
+	if len(parts) == 2 {
+		state.User = types.StringValue(parts[0])
+		state.Subuser = types.StringValue(parts[1])
+	} else {
+		state.User = types.StringValue(matchingKey.User)
+	}
+
 	state.AccessKey = types.StringValue(matchingKey.AccessKey)
 	state.SecretKey = types.StringValue(matchingKey.SecretKey)
 

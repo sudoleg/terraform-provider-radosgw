@@ -19,7 +19,7 @@ resource "radosgw_user" "demo_user" {
 resource "radosgw_subuser" "demo_subuser_readonly" {
   user_id = "demo"
   subuser = "readonly"
-  access  = "readwrite"
+  access  = "read"
 }
 
 resource "radosgw_key" "demo_default_key" {
@@ -28,4 +28,9 @@ resource "radosgw_key" "demo_default_key" {
 
 resource "radosgw_key" "demo_second_key" {
   user = "demo"
+}
+
+resource "radosgw_key" "demo_readonly_key" {
+  user    = "demo"
+  subuser = "readonly"
 }
