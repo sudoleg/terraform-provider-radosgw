@@ -30,7 +30,7 @@ type subuserResource struct {
 	client *admin.API
 }
 
-// Configure implements resource.ResourceWithConfigure
+// Configure implements resource.ResourceWithConfigure.
 func (r *subuserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
@@ -87,7 +87,7 @@ type subuserResourceModel struct {
 	Access  types.String `tfsdk:"access"`
 }
 
-// Read implements resource.Resource
+// Read implements resource.Resource.
 func (r *subuserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state subuserResourceModel
 	diags := req.State.Get(ctx, &state)
@@ -160,7 +160,7 @@ func mapSubuser(parentUser string, subuser admin.SubuserSpec) admin.SubuserSpec 
 	return subuser
 }
 
-// ImportState implements resource.ResourceWithImportState
+// ImportState implements resource.ResourceWithImportState.
 func (r *subuserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	parts := strings.SplitN(req.ID, ":", 2)
 	if len(parts) != 2 {
@@ -212,7 +212,7 @@ func (r *subuserResource) ImportState(ctx context.Context, req resource.ImportSt
 	}
 }
 
-// Create implements resource.Resource
+// Create implements resource.Resource.
 func (r *subuserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan subuserResourceModel
 	diags := req.Plan.Get(ctx, &plan)
@@ -244,7 +244,7 @@ func (r *subuserResource) Create(ctx context.Context, req resource.CreateRequest
 	}
 }
 
-// Update implements resource.Resource
+// Update implements resource.Resource.
 func (r *subuserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan subuserResourceModel
 	diags := req.Plan.Get(ctx, &plan)
@@ -274,7 +274,7 @@ func (r *subuserResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 }
 
-// Delete implements resource.Resource
+// Delete implements resource.Resource.
 func (r *subuserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state subuserResourceModel
 	diags := req.State.Get(ctx, &state)
