@@ -68,7 +68,13 @@ func (r *subuserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"access": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					stringvalidator.OneOf("read", "write", "readwrite", "full"),
+					stringvalidator.OneOf(
+						string(admin.SubuserAccessNone),
+						string(admin.SubuserAccessRead),
+						string(admin.SubuserAccessReadWrite),
+						string(admin.SubuserAccessWrite),
+						string(admin.SubuserAccessFull),
+					),
 				},
 			},
 		},
