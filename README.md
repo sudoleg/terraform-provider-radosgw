@@ -1,5 +1,15 @@
 # Terraform Radosgw Provider
 
+**Note**: This is entirely experimental, pre-alpha and might break at any point.  It is able to do some things, but expect things not working and the data format to still change.
+
+An _attempt_ at a Terraform Provider for [radosgw (admin)](https://docs.ceph.com/en/latest/radosgw/adminops/).
+
+Can (partially) manage:
+
+- users
+- subusers
+- keys
+
 _This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://www.terraform.io/docs/plugin/which-sdk.html) in the Terraform documentation for additional information._
 
 ## Requirements
