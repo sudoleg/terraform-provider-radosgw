@@ -28,7 +28,7 @@ type keyResource struct {
 	client *admin.API
 }
 
-// Configure implements resource.ResourceWithConfigure
+// Configure implements resource.ResourceWithConfigure.
 func (r *keyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
