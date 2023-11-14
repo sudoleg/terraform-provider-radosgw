@@ -294,6 +294,7 @@ func (r *keyResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 		UID:       state.User.ValueString(),
 		SubUser:   state.Subuser.ValueString(),
 		AccessKey: state.AccessKey.ValueString(),
+		KeyType:   "s3",
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(
