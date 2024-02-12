@@ -37,11 +37,13 @@ type radosgwProviderModel struct {
 	SecretAccessKey types.String `tfsdk:"secret_access_key"`
 }
 
+// defines the provider type name for inclusion in each data source and resource type name
 func (p *radosgwProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "radosgw"
 	resp.Version = p.version
 }
 
+// defines the schema for provider-level configuration
 func (p *radosgwProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -60,6 +62,7 @@ func (p *radosgwProvider) Schema(ctx context.Context, req provider.SchemaRequest
 	}
 }
 
+// configures shared clients for data source and resource implementations
 func (p *radosgwProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var config radosgwProviderModel
 
@@ -144,6 +147,7 @@ func (p *radosgwProvider) Configure(ctx context.Context, req provider.ConfigureR
 	tflog.Info(ctx, "configured radosgw admin client", map[string]any{"success": true})
 }
 
+// defines the provider's resources
 func (p *radosgwProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewUserResource,
@@ -152,12 +156,14 @@ func (p *radosgwProvider) Resources(ctx context.Context) []func() resource.Resou
 	}
 }
 
+// defines the provider's data sources
 func (p *radosgwProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewBucketsDataSource,
 	}
 }
 
+// New is a helper function to simplify provider server and testing implementation
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
 		return &radosgwProvider{
